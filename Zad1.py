@@ -1,121 +1,271 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy.stats import linregress
+
+columns = ['Długość działki kielicha',
+              'Szerokość działki kielicha',
+              'Długość płatka',
+              'Szerokość płatka',
+              'Gatunek']
+
+df = pd.read_csv('data1.csv', header=None, names=columns)
 
 
-# Wczytanie danych
-# Zakładam, że plik 'data1.csv' to klasyczny zbiór irysów bez nagłówków
-file_path = 'data1.csv'
-columns = ['długość działki kielicha', 'szerokość działki kielicha', 'długość płatka', 'szerokość płatka', 'gatunek']
-data = pd.read_csv(file_path, header=None, names=columns)
+# +-------------------------------------------------------------------------------------------------------------+
+# |--------------------------------------------------Zadanie 1.1------------------------------------------------|
+# +-------------------------------------------------------------------------------------------------------------+
 
-# Zamiana wartości w kolumnie 'gatunek' na odpowiednie nazwy gatunków
-species_mapping = {0: 'setosa', 1: 'versicolor', 2: 'virginica'}
-data['gatunek'] = data['gatunek'].map(species_mapping)
+mapa_garunkow = {0: 'setosa', 1: 'versicolor', 2: 'virginica'}
+df['Gatunek'] = df['Gatunek'].map(mapa_garunkow)
 
-# 1. Liczności poszczególnych gatunków
-# Obliczenie liczby wystąpień poszczególnych gatunków
-species_counts = data['gatunek'].value_counts()
 
-# Obliczenie udziałów procentowych poszczególnych gatunków
-species_percentage = (species_counts / len(data)) * 100
+ilosc_gatunkow = df['Gatunek'].value_counts()
 
-# Zaokrąglenie udziałów procentowych do jednego miejsca po przecinku
-species_percentage = species_percentage.round(1)
 
-# 2. Miary rozkładu dla cech kwiatów
-# Obliczenie miar: minimum, maksimum, średnia, mediana, dolny kwartyl (Q1), górny kwartyl (Q3), odchylenie standardowe
-# W tabeli 2 będą zawarte te statystyki dla każdej cechy (oprócz gatunku)
+procent_gatunkow = ((ilosc_gatunkow / len(df)) * 100).round(1)
 
-# Lista cech, które będziemy analizować
-features = data.columns[:-1]  # Zakładając, że ostatnia kolumna to 'gatunek'
 
-# Stworzenie DataFrame do przechowywania miar
-summary_stats = pd.DataFrame(index=features,
-                             columns=['Minimum', 'Śr. arytm. (± odch. stand.)', 'Mediana (Q1 - Q3)',
-                                      'Maksimum'])
+zestawienie_gatunkow = pd.DataFrame({
+    'Gatunek': ilosc_gatunkow.index,
+    'Liczebność': ilosc_gatunkow.values,
+    'Procent': procent_gatunkow})
 
-for feature in features:
-    # Minimum i maksimum
-    min_value = data[feature].min()
-    max_value = data[feature].max()
+podsumowanie_gatunkow = pd.DataFrame([{
+    'Gatunek': 'Razem',
+    'Liczebność': zestawienie_gatunkow['Liczebność'].sum(),
+    'Procent': (zestawienie_gatunkow['Procent'].sum()).round(0)
+}])
 
-    # Średnia arytmetyczna i odchylenie standardowe
-    mean_value = data[feature].mean()
-    std_dev = data[feature].std()
-    mean_std = f"{mean_value:.2f} (± {std_dev:.2f})"
+zestawienie_gatunkow = pd.concat([zestawienie_gatunkow, podsumowanie_gatunkow], ignore_index=True)
 
-    # Mediana oraz kwartyle Q1 i Q3
-    median = data[feature].median()
-    q1 = data[feature].quantile(0.25)
-    q3 = data[feature].quantile(0.75)
-    median_q1_q3 = f"{median:.2f} ({q1:.2f} - {q3:.2f})"
+print(zestawienie_gatunkow.to_string(index=False, line_width=None, col_space=15, justify='center'))
 
-    # Uzupełnienie tabeli z miarami
-    summary_stats.loc[feature] = [f"{min_value:.2f}", mean_std, median_q1_q3, f"{max_value:.2f}"]
+# +-------------------------------------------------------------------------------------------------------------+
+# |--------------------------------------------------Zadanie 1.2------------------------------------------------|
+# +-------------------------------------------------------------------------------------------------------------+
 
-# Wyświetlenie wyników bez kropek
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', None)
-print("\nTabela 1: Liczności gatunków irysów")
-species_summary = pd.DataFrame({
-    'Gatunek': species_counts.index,  # Nazwy gatunków
-    'Liczebność': species_counts.values,  # Liczba obserwacji dla każdego gatunku
-    'Udział procentowy (%)': species_percentage.values  # Udział procentowy dla każdego gatunku
-})
-print(species_summary.to_string(index=False, line_width=None, col_space=15, justify='center'))  # Wyświetlamy tabelę bez indeksów, z dodanymi separatorami
+columns2 = ['Długość działki kielicha',
+              'Szerokość działki kielicha',
+              'Długość płatka',
+              'Szerokość płatka']
 
-# Wyświetlenie tabeli 2: Charakterystyka cech irysów
-print("\nTabela 2: Charakterystyka cech irysów")
-print(summary_stats.to_string(index=True, line_width=None, col_space=15, justify='center'))  # Wyświetlamy pełną tabelę statystyk z separatorami
+miary_rozkladu_list = []
 
-# Tworzenie histogramów i wykresów pudełkowych
-plt.figure(figsize=(15, 20))  # Ustawienie rozmiaru całego wykresu
+for col in columns2:
+    miary_rozkladu_list.append({
+        'Cechy': col,
+        'Maximum': df[col].max(),
+        'Średnia': round(df[col].mean(), 2),
+        'Odch. stand.': round(df[col].std(), 2),
+        'Mediana': round(df[col].median(), 2),
+        'Q1': round(df[col].quantile(0.25), 2),
+        'Q3': round(df[col].quantile(0.75), 2),
+        'Minimum': df[col].min(),
+    })
 
-# Iteracja po każdej cesze w celu stworzenia wykresów
-for i, feature in enumerate(features):
-    # Histogram dla danej cechy
-    plt.subplot(4, 2, 2 * i + 1)  # Ustawienie miejsca na wykres (1, 3, 5, 7)
-    sns.histplot(data[feature], bins=10, kde=False, color='blue')  # Tworzenie histogramu
-    plt.xlabel(f'{feature} (cm)')
-    plt.ylabel('Liczebność')
-    plt.title(f'Histogram: {feature}')
+miary_rozkladu = pd.DataFrame(miary_rozkladu_list) # Konwersja listy do obiektu DataFrame
 
-    # Wykres pudełkowy dla danej cechy z rozróżnieniem na gatunki
-    plt.subplot(4, 2, 2 * i + 2)  # Ustawienie miejsca na wykres (2, 4, 6, 8)
-    sns.boxplot(x='gatunek', y=feature, data=data, palette='Set3')  # Tworzenie wykresu pudełkowego
-    plt.xlabel('Gatunek')
-    plt.ylabel(f'{feature} (cm)')
-    plt.title(f'Wykres pudełkowy: {feature}')
+print("\n")
+print(miary_rozkladu.to_string(index=False, line_width=None, col_space=15, justify='center'))
 
-# Zapisanie wykresów do pliku PNG i wyświetlenie ich
-plt.tight_layout()  # Optymalne rozmieszczenie wykresów bez nakładania się
-plt.savefig('wykresy_cech_irysow.png')  # Zapisanie wykresów do pliku
-plt.show()  # Wyświetlenie wszystkich wykresów
+# +-------------------------------------------------------------------------------------------------------------+
+# |--------------------------------------------------Zadanie 2.1------------------------------------------------|
+# +-------------------------------------------------------------------------------------------------------------+
 
-# Tworzenie wykresów punktowych z linią regresji dla każdej pary cech
-plt.figure(figsize=(20, 20))  # Ustawienie rozmiaru całego wykresu
 
-# Iteracja po parach cech
-for i, (feature_x, feature_y) in enumerate(
-        [(features[0], features[1]), (features[0], features[2]), (features[0], features[3]), (features[1], features[2]),
-         (features[1], features[3]), (features[2], features[3])]):
-    # Obliczenie współczynnika korelacji Pearsona oraz linii regresji
-    correlation, p_value = np.corrcoef(data[feature_x], data[feature_y])[0, 1], 0  # Współczynnik korelacji Pearsona
-    slope, intercept, r_value, p_value, std_err = linregress(data[feature_x], data[feature_y])
-    regression_line = f"y = {slope:.2f}x + {intercept:.2f}"  # Równanie regresji
+# Histogram - Długość działki kielicha
+przedzialy1 = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0]
 
-    # Tworzenie wykresu punktowego z linią regresji
-    plt.subplot(3, 2, i + 1)  # Ustawienie miejsca na wykres
-    sns.scatterplot(x=feature_x, y=feature_y, data=data, color='blue')  # Wykres punktowy
-    plt.plot(data[feature_x], slope * data[feature_x] + intercept, color='red')  # Linia regresji
-    plt.xlabel(f'{feature_x} (cm)')
-    plt.ylabel(f'{feature_y} (cm)')
-    plt.title(f'r = {correlation:.2f}; {regression_line}')
+plt.hist(df['Długość działki kielicha'], bins=przedzialy1, color='blue', edgecolor='black')
+plt.xticks(przedzialy1)
+plt.title('Długość działki kielicha')
+plt.xlabel('Wartości')
+plt.ylabel('Liczebność')
 
-# Zapisanie wykresów punktowych do pliku PNG i wyświetlenie ich
-plt.tight_layout()  # Optymalne rozmieszczenie wykresów bez nakładania się
-plt.savefig('wykresy_regresji_cech_irysow.png')  # Zapisanie wykresów do pliku
-plt.show()  # Wyświetlenie wszystkich wykresów
+plt.tight_layout()
+plt.show()
+
+
+# Histogram - Szerokość działki kielicha
+przedzialy2 = [2.0, 2.5, 3.0, 3.5, 4.0, 4.5]
+
+plt.hist(df['Szerokość działki kielicha'], bins=przedzialy2, color='blue', edgecolor='black')
+plt.xticks(przedzialy2)
+plt.title('Szerokość działki kielicha')
+plt.xlabel('Wartości')
+plt.ylabel('Liczebność')
+
+plt.tight_layout()
+plt.show()
+
+
+# Histogram - Długość płatka
+przedzialy3 = [1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0]
+
+plt.hist(df['Długość płatka'], bins=przedzialy3, color='blue', edgecolor='black')
+plt.xticks(przedzialy3)
+plt.title('Długość płatka')
+plt.xlabel('Wartości')
+plt.ylabel('Liczebność')
+
+plt.tight_layout()
+plt.show()
+
+
+# Histogram - Szerokość płatka
+przedzialy4 = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
+
+plt.hist(df['Szerokość płatka'], bins=przedzialy4, color='blue', edgecolor='black')
+plt.xticks(przedzialy4)
+plt.title('Szerokość płatka')
+plt.xlabel('Wartości')
+plt.ylabel('Liczebność')
+
+plt.tight_layout()
+plt.show()
+
+# +-------------------------------------------------------------------------------------------------------------+
+# |--------------------------------------------------Zadanie 2.2------------------------------------------------|
+# +-------------------------------------------------------------------------------------------------------------+
+
+# Pudełkowy - Długość działki kielicha
+dane_gatunek_0 = df[df['Gatunek'] == 'setosa']['Długość działki kielicha']
+dane_gatunek_1 = df[df['Gatunek'] == 'versicolor']['Długość działki kielicha']
+dane_gatunek_2 = df[df['Gatunek'] == 'virginica']['Długość działki kielicha']
+
+plt.boxplot([dane_gatunek_0, dane_gatunek_1, dane_gatunek_2], tick_labels=['setosa', 'versicolor', 'virginica'])
+
+plt.title('Długość działki kielicha')
+plt.ylabel('Długość (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Pudełkowy - Szerokość działki kielicha
+dane_gatunek_0 = df[df['Gatunek'] == 'setosa']['Szerokość działki kielicha']
+dane_gatunek_1 = df[df['Gatunek'] == 'versicolor']['Szerokość działki kielicha']
+dane_gatunek_2 = df[df['Gatunek'] == 'virginica']['Szerokość działki kielicha']
+
+plt.boxplot([dane_gatunek_0, dane_gatunek_1, dane_gatunek_2], tick_labels=['setosa', 'versicolor', 'virginica'])
+
+plt.title('Szerokość działki kielicha')
+plt.ylabel('Szerokość (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Pudełkowy - Długość płatka
+dane_gatunek_0 = df[df['Gatunek'] == 'setosa']['Długość płatka']
+dane_gatunek_1 = df[df['Gatunek'] == 'versicolor']['Długość płatka']
+dane_gatunek_2 = df[df['Gatunek'] == 'virginica']['Długość płatka']
+
+plt.boxplot([dane_gatunek_0, dane_gatunek_1, dane_gatunek_2], tick_labels=['setosa', 'versicolor', 'virginica'])
+
+plt.title('Długość płatka')
+plt.ylabel('Długość (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Pudełkowy - Szerokość płatka
+dane_gatunek_0 = df[df['Gatunek'] == 'setosa']['Szerokość płatka']
+dane_gatunek_1 = df[df['Gatunek'] == 'versicolor']['Szerokość płatka']
+dane_gatunek_2 = df[df['Gatunek'] == 'virginica']['Szerokość płatka']
+
+plt.boxplot([dane_gatunek_0, dane_gatunek_1, dane_gatunek_2], tick_labels=['setosa', 'versicolor', 'virginica'])
+
+plt.title('Szerokość płatka')
+plt.ylabel('Szerokość (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# +-------------------------------------------------------------------------------------------------------------+
+# |--------------------------------------------------Zadanie 3.1------------------------------------------------|
+# +-------------------------------------------------------------------------------------------------------------+
+
+
+# Szerokość działki kielicha - Długość działki kielicha
+korelacja = (df['Szerokość działki kielicha'].corr(df['Długość działki kielicha'])).round(2)
+
+slope, intercept = np.polyfit(df['Długość działki kielicha'], df['Szerokość działki kielicha'], 1) # Współczyniki równania równania regresji liniowej
+
+sns.lmplot(x='Długość działki kielicha', y='Szerokość działki kielicha', data=df, ci=None, line_kws={'color': 'red'}, scatter_kws={'s': 50,'color': 'blue'})
+
+plt.title(f'r = {korelacja}; y = {slope:.1f}x + {intercept:.1f}')
+plt.xlabel('Długość działki kielicha (cm)')
+plt.ylabel('Szerokość działki kielicha (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Długość płatka - Długość działki kielicha
+korelacja = (df['Długość płatka'].corr(df['Długość działki kielicha'])).round(2)
+
+slope, intercept = np.polyfit(df['Długość działki kielicha'], df['Długość płatka'], 1) # Współczyniki równania równania regresji liniowej
+
+sns.lmplot(x='Długość działki kielicha', y='Długość płatka', data=df, ci=None, line_kws={'color': 'red'}, scatter_kws={'s': 50,'color': 'blue'})
+
+plt.title(f'r = {korelacja}; y = {slope:.1f}x + {intercept:.1f}')
+plt.xlabel('Długość działki kielicha (cm)')
+plt.ylabel('Długość płatka (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Szerokość płatka - Długość działki kielicha
+korelacja = (df['Szerokość płatka'].corr(df['Długość działki kielicha'])).round(2)
+
+slope, intercept = np.polyfit(df['Długość działki kielicha'], df['Szerokość płatka'], 1) # Współczyniki równania równania regresji liniowej
+
+sns.lmplot(x='Długość działki kielicha', y='Szerokość płatka', data=df, ci=None, line_kws={'color': 'red'}, scatter_kws={'s': 50,'color': 'blue'})
+
+plt.title(f'r = {korelacja}; y = {slope:.1f}x + {intercept:.1f}')
+plt.xlabel('Długość działki kielicha (cm)')
+plt.ylabel('Szerokość płatka (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Długość płatka - Szerokość działki kielicha
+korelacja = (df['Długość płatka'].corr(df['Szerokość działki kielicha'])).round(2)
+
+slope, intercept = np.polyfit(df['Szerokość działki kielicha'], df['Długość płatka'], 1) # Współczyniki równania równania regresji liniowej
+
+sns.lmplot(x='Szerokość działki kielicha', y='Długość płatka', data=df, ci=None, line_kws={'color': 'red'}, scatter_kws={'s': 50,'color': 'blue'})
+
+plt.title(f'r = {korelacja}; y = {slope:.1f}x + {intercept:.1f}')
+plt.xlabel('Szerokość działki kielicha (cm)')
+plt.ylabel('Długość płatka (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Szerokość płatka - Szerokość działki kielicha
+korelacja = (df['Szerokość płatka'].corr(df['Szerokość działki kielicha'])).round(2)
+
+slope, intercept = np.polyfit(df['Szerokość działki kielicha'], df['Szerokość płatka'], 1) # Współczyniki równania równania regresji liniowej
+
+sns.lmplot(x='Szerokość działki kielicha', y='Szerokość płatka', data=df, ci=None, line_kws={'color': 'red'}, scatter_kws={'s': 50,'color': 'blue'})
+
+plt.title(f'r = {korelacja}; y = {slope:.1f}x + {intercept:.1f}')
+plt.xlabel('Szerokość działki kielicha (cm)')
+plt.ylabel('Szerokość płatka (cm)')
+
+plt.tight_layout()
+plt.show()
+
+# Szerokość płatka - Długość płatka
+korelacja = (df['Szerokość płatka'].corr(df['Długość płatka'])).round(2)
+
+slope, intercept = np.polyfit(df['Długość płatka'], df['Szerokość płatka'], 1) # Współczyniki równania równania regresji liniowej
+
+sns.lmplot(x='Długość płatka', y='Szerokość płatka', data=df, ci=None, line_kws={'color': 'red'}, scatter_kws={'s': 50,'color': 'blue'})
+
+plt.title(f'r = {korelacja}; y = {slope:.1f}x + {intercept:.1f}')
+plt.xlabel('Długość płatka (cm)')
+plt.ylabel('Szerokość płatka (cm)')
+
+plt.tight_layout()
+plt.show()
