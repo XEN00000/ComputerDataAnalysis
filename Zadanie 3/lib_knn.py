@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 
 class AlgorithmKNN:
@@ -7,17 +8,21 @@ class AlgorithmKNN:
     distanceMatrix = []  # Tablica odległości obiektów training od test
     trainingSetNormalized = []  # Zbiór treingowy znormalizowany (bez klas)
     testSetNormalized = []  # Zbiór testowy znormalizowany (bez klas)
-    expectedClasses = []    # Wyniki klasyfikacji przeprowadzonej przez program
+    expectedClasses = []  # Wyniki klasyfikacji przeprowadzonej przez program
+    classificationMissTable = []  # Tabela pomyłek
 
-    def __init__(self, trainingData):
+    def __init__(self, trainingData, testData):
         self.trainingSet = trainingData
         self.trainingSetNormalized = self.normalize(self.trainingSet[:, :-1])
-
-    def loadTestData(self, testData):
         self.testSet = testData
         self.testSetNormalized = self.normalize(self.testSet[:, :-1])
 
     def knn(self, k):
+        # self.classificationMissTable = [[0 for _ in range(k)] for _ in range(k)]
+        self.classificationMissTable = [[0, 0, 0],
+                                        [0, 0, 0],
+                                        [0, 0, 0]]
+
         # krok 1.
         self.calculateDistances(self.trainingSetNormalized, self.testSetNormalized)
 
@@ -29,7 +34,7 @@ class AlgorithmKNN:
         # Zapisać je w zmiennej żeby móc wyjąć sobie z trainingSet kolumny z klasami
         # Zobaczyć których jest najwięcej i przypisać klasy dla obiektów testowych
 
-        classesToSelect = self.fromDistanceToIndex(lowestInColumns)
+        classesToSelect = self.fromDistanceToIndex(lowestInColumns, k)
         self.expectedClasses = self.classesSelector(classesToSelect, k)
         return
 
@@ -42,32 +47,65 @@ class AlgorithmKNN:
         macierz_odleglosci = np.sqrt(A_suma_kwadratow + B_suma_kwadratow - 2 * np.dot(A, B.T))
 
         self.distanceMatrix = macierz_odleglosci
+        return
 
-    def fromDistanceToIndex(self, distances):
+    def fromDistanceToIndex(self, distances, n):
         listOfObjectIndexes = []
         for column, i in enumerate(distances):
             sublist = []
             for value, index in i:
-                sublist.append([column, int(self.trainingSet[index][4]), float(value)])
+                if 0 <= index < len(self.trainingSet):
+                    sublist.append([column, int(self.trainingSet[index][len(self.testSet[0]) - 1]), float(value)])
+                else:
+                    print(f"Niepoprawny indeks: {index}, pominięty.")
                 # print(f"Obiekt testowy nr: {column}   Klasa: {self.testSet[column][4]} <-> {self.trainingSet[index][4]}")
                 # print(f"Obiekt testowy nr: {column} -> {self.trainingSet[index][4]}")
             listOfObjectIndexes.append(sublist)
 
         return listOfObjectIndexes
 
-    def visualize(self):
-        return
-
     def missesMatrix(self):
+        # Tworzenie wielopoziomowego nagłówka
+        columns = pd.MultiIndex.from_product(
+            [["Wynik rozpoznania"], ["setosa", "versicolor", "virginica"]],
+            names=["", "Gatunki"]
+        )
+
+        # Tworzenie tabeli DataFrame
+        tabela = pd.DataFrame(self.classificationMissTable, index=["setosa", "versicolor", "virginica"],
+                              columns=columns)
+
+        # Wyświetlanie tabeli
+        print(tabela)
         return
 
     def accuracy(self):
         classification_accuracy = 0
         for number, category in enumerate(self.expectedClasses):
-            if category == self.testSet[number][4]:
+            if category == self.testSet[number][-1]:
                 classification_accuracy += 1
+                if category == 0:
+                    self.classificationMissTable[0][0] += 1
+                if category == 1:
+                    self.classificationMissTable[1][1] += 1
+                if category == 2:
+                    self.classificationMissTable[2][2] += 1
+            else:
+                if self.testSet[number][-1] == 1 and category == 0:
+                    self.classificationMissTable[1][0] += 1
+                if self.testSet[number][-1] == 2 and category == 0:
+                    self.classificationMissTable[2][0] += 1
+                if self.testSet[number][-1] == 2 and category == 1:
+                    self.classificationMissTable[2][1] += 1
+                if self.testSet[number][-1] == 0 and category == 1:
+                    self.classificationMissTable[0][1] += 1
+                if self.testSet[number][-1] == 0 and category == 2:
+                    self.classificationMissTable[0][2] += 1
+                if self.testSet[number][-1] == 1 and category == 2:
+                    self.classificationMissTable[1][2] += 1
 
-        return round((classification_accuracy / len(self.testSet))*100, 2)
+        # print(self.classificationMissTable)
+        return round((classification_accuracy / len(self.testSet)) * 100, 2)
 
     @staticmethod
     def normalize(x):
@@ -84,7 +122,7 @@ class AlgorithmKNN:
             for j in range(n):
                 votes.append([classes[i][j][1], classes[i][j][2]])
 
-            #print(votes)
+            # print(votes)
 
             #   Liczymy nasze "głosy" korzystając ze słownika
             counter = {}
@@ -92,13 +130,19 @@ class AlgorithmKNN:
             for vote in votes:
                 if vote[0] in counter:
                     counter[vote[0]] += 1
-                    weights[vote[0]] += float(1 / vote[1] + 1e-9)
+                    if vote[1] == 0:
+                        weights[vote[0]] = 1
+                    else:
+                        weights[vote[0]] += float(1 / vote[1] + 1e-9)
                 else:
                     counter[vote[0]] = 1
-                    weights[vote[0]] = float(1 / vote[1] + 1e-9)
+                    if vote[1] == 0:
+                        weights[vote[0]] = 1
+                    else:
+                        weights[vote[0]] = float(1 / vote[1] + 1e-9)
 
-            #print(weights)
-            #print(counter)
+            # print(weights)
+            # print(counter)
 
             winner = None
             numberOfVotes = 0
@@ -114,7 +158,7 @@ class AlgorithmKNN:
 
             result.append(winner)
 
-        #print(result)
+        # print(result)
         return result
 
     @staticmethod
@@ -129,7 +173,7 @@ class AlgorithmKNN:
             # n oznacza nasze k obiektów do wybrania. Pętla przejdzie po kolumnie tyle razy ile mamy wybrać najmnieszych wartości z kolumny
             for _ in range(n):
                 # Inicjalizujemy wartość minimalną (2.0 dlatego że po normalizacji największą wartością będzie sqrt(2))
-                min_wartosc = float(2.0)
+                min_wartosc = float('inf')
                 min_indeks = -1
 
                 # Przeszukujemy całą kolumnę, aby znaleźć najmniejszy element
