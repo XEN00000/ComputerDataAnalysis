@@ -90,3 +90,10 @@ def plot_clusters(x, labels, centroids, features):
         plt.legend()
     plt.tight_layout()
     plt.show()
+
+# 7. Funkcja denormalizująca dane
+def denormalize_centroids(normalized_centroids, X_original):
+    X_min = X_original.min(axis=0)
+    X_max = X_original.max(axis=0)
+    return normalized_centroids * (X_max - X_min) + X_min
+

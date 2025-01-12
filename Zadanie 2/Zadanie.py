@@ -12,12 +12,13 @@ if __name__ == "__main__":
               'Szerokość płatka']
 
     # Normalizacja danych
-    X = ksr.normalize_min_max(data)
+    X_normalized = ksr.normalize_min_max(data)  # Normalizacja kopii danych
 
     # Analiza dla różnych wartości k
     k_range = range(2, 11)
-    wcss_values, iteration_counts = ksr.elbow_method(X, k_range)
+    wcss_values, iteration_counts = ksr.elbow_method(X_normalized, k_range)
 
     # Wizualizacja wyników dla k=3
-    labels, centroids, _ = ksr.kmeans(X, k=3)
-    ksr.plot_clusters(X, labels, centroids, plot_labels)
+    labels, centroids, iterations = ksr.kmeans(X_normalized, k=3)
+    centroids_original = ksr.denormalize_centroids(centroids, data)
+    ksr.plot_clusters(data, labels, centroids_original, plot_labels)
