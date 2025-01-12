@@ -18,19 +18,23 @@ print("\n\n---------------------------Dla wszystkich cech irysów---------------
 knnSolver = knn.AlgorithmKNN(data_train, data_test)
 
 k_values = list(range(1, 16))
-globalAccuracy = []
+globalAccuracy = {}
 
 for i in range(1, 16):
     knnSolver.knn(i)
     acc = knnSolver.accuracy()
-    globalAccuracy.append(acc)
-    if acc == 100.0:
-        print(f"k = {i}, osiągnęło 100%")
+    globalAccuracy[i] = acc
+
+for key, value in globalAccuracy.items():
+    if value == max(globalAccuracy.values()):
+        print(f"\nk = {key}, osiągnęło: {value}%")
+        knnSolver.knn(key)
+        knnSolver.accuracy()
         knnSolver.missesMatrix()
 
 # 2. Tworzenie wykresu
 plt.figure(figsize=(10, 6))  # Ustawienie rozmiaru wykresu
-plt.plot(k_values, globalAccuracy, marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
+plt.plot(k_values, globalAccuracy.values(), marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
 
 # 3. Dodanie tytułu i opisów osi
 plt.title('Dokładność klasyfikacji dla wszystkich cech w zależności od k (k-NN)', fontsize=14)  # Tytuł wykresu
@@ -60,18 +64,22 @@ print("\n\n---------------------------Dla sepal length i sepal width------------
 
 knnSolver01 = knn.AlgorithmKNN(data_train[:, [0, 1, -1]], data_test[:, [0, 1, -1]])
 
-globalAccuracy01 = []
+globalAccuracy01 = {}
 
 for i in range(1, 16):
     knnSolver01.knn(i)
     acc = knnSolver01.accuracy()
-    globalAccuracy01.append(acc)
-    if acc == 100.0:
-        print(f"k = {i}, osiągnęło 100%")
+    globalAccuracy01[i] = acc
+
+for key, value in globalAccuracy01.items():
+    if value == max(globalAccuracy01.values()):
+        print(f"\nk = {key}, osiągnęło: {value}%")
+        knnSolver01.knn(key)
+        knnSolver01.accuracy()
         knnSolver01.missesMatrix()
 
 plt.figure(figsize=(10, 6))  # Ustawienie rozmiaru wykresu
-plt.plot(k_values, globalAccuracy01, marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
+plt.plot(k_values, globalAccuracy01.values(), marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
 
 # 3. Dodanie tytułu i opisów osi
 plt.title('Dokładność klasyfikacji dla sepal length i sepal width w zależności od k (k-NN)', fontsize=14)  # Tytuł wykresu
@@ -100,18 +108,22 @@ print("\n\n---------------------------Dla sepal length i petal length-----------
 
 knnSolver02 = knn.AlgorithmKNN(data_train[:, [0, 2, -1]], data_test[:, [0, 2, -1]])
 
-globalAccuracy02 = []
+globalAccuracy02 = {}
 
 for i in range(1, 16):
     knnSolver02.knn(i)
     acc = knnSolver02.accuracy()
-    globalAccuracy02.append(acc)
-    if acc == 100.0:
-        print(f"k = {i}, osiągnęło 100%")
+    globalAccuracy02[i] = acc
+
+for key, value in globalAccuracy02.items():
+    if value == max(globalAccuracy02.values()):
+        print(f"\nk = {key}, osiągnęło: {value}%")
+        knnSolver02.knn(key)
+        knnSolver02.accuracy()
         knnSolver02.missesMatrix()
 
 plt.figure(figsize=(10, 6))  # Ustawienie rozmiaru wykresu
-plt.plot(k_values, globalAccuracy02, marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
+plt.plot(k_values, globalAccuracy02.values(), marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
 
 # 3. Dodanie tytułu i opisów osi
 plt.title('Dokładność klasyfikacji dla sepal length i petal length w zależności od k (k-NN)', fontsize=14)  # Tytuł wykresu
@@ -140,18 +152,22 @@ print("\n\n---------------------------Dla sepal length i petal width------------
 
 knnSolver03 = knn.AlgorithmKNN(data_train[:, [0, 3, -1]], data_test[:, [0, 3, -1]])
 
-globalAccuracy03 = []
+globalAccuracy03 = {}
 
 for i in range(1, 16):
     knnSolver03.knn(i)
     acc = knnSolver03.accuracy()
-    globalAccuracy03.append(acc)
-    if acc == 100.0:
-        print(f"k = {i}, osiągnęło 100%")
+    globalAccuracy03[i] = acc
+
+for key, value in globalAccuracy03.items():
+    if value == max(globalAccuracy03.values()):
+        print(f"\nk = {key}, osiągnęło: {value}%")
+        knnSolver03.knn(key)
+        knnSolver03.accuracy()
         knnSolver03.missesMatrix()
 
 plt.figure(figsize=(10, 6))  # Ustawienie rozmiaru wykresu
-plt.plot(k_values, globalAccuracy03, marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
+plt.plot(k_values, globalAccuracy03.values(), marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
 
 # 3. Dodanie tytułu i opisów osi
 plt.title('Dokładność klasyfikacji dla sepal length i petal width w zależności od k (k-NN)', fontsize=14)  # Tytuł wykresu
@@ -180,18 +196,22 @@ print("\n\n---------------------------Dla sepal width i petal length------------
 
 knnSolver04 = knn.AlgorithmKNN(data_train[:, [1, 2, -1]], data_test[:, [1, 2, -1]])
 
-globalAccuracy04 = []
+globalAccuracy04 = {}
 
 for i in range(1, 16):
     knnSolver04.knn(i)
     acc = knnSolver04.accuracy()
-    globalAccuracy04.append(acc)
-    if acc == 100.0:
-        print(f"k = {i}, osiągnęło 100%")
+    globalAccuracy04[i] = acc
+
+for key, value in globalAccuracy04.items():
+    if value == max(globalAccuracy04.values()):
+        print(f"\nk = {key}, osiągnęło: {value}%")
+        knnSolver04.knn(key)
+        knnSolver04.accuracy()
         knnSolver04.missesMatrix()
 
 plt.figure(figsize=(10, 6))  # Ustawienie rozmiaru wykresu
-plt.plot(k_values, globalAccuracy04, marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
+plt.plot(k_values, globalAccuracy04.values(), marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
 
 # 3. Dodanie tytułu i opisów osi
 plt.title('Dokładność klasyfikacji dla sepal width i petal length w zależności od k (k-NN)', fontsize=14)  # Tytuł wykresu
@@ -220,18 +240,22 @@ print("\n\n---------------------------Dla sepal width i petal width-------------
 
 knnSolver05 = knn.AlgorithmKNN(data_train[:, [1, 3, -1]], data_test[:, [1, 3, -1]])
 
-globalAccuracy05 = []
+globalAccuracy05 = {}
 
 for i in range(1, 16):
     knnSolver05.knn(i)
     acc = knnSolver05.accuracy()
-    globalAccuracy05.append(acc)
-    if acc == 100.0:
-        print(f"k = {i}, osiągnęło 100%")
+    globalAccuracy05[i] = acc
+
+for key, value in globalAccuracy05.items():
+    if value == max(globalAccuracy05.values()):
+        print(f"\nk = {key}, osiągnęło: {value}%")
+        knnSolver05.knn(key)
+        knnSolver05.accuracy()
         knnSolver05.missesMatrix()
 
 plt.figure(figsize=(10, 6))  # Ustawienie rozmiaru wykresu
-plt.plot(k_values, globalAccuracy05, marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
+plt.plot(k_values, globalAccuracy05.values(), marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
 
 # 3. Dodanie tytułu i opisów osi
 plt.title('Dokładność klasyfikacji dla Dla sepal width i petal width w zależności od k (k-NN)', fontsize=14)  # Tytuł wykresu
@@ -260,18 +284,22 @@ print("\n\n---------------------------Dla petal length i petal width------------
 
 knnSolver06 = knn.AlgorithmKNN(data_train[:, [2, 3, -1]], data_test[:, [2, 3, -1]])
 
-globalAccuracy06 = []
+globalAccuracy06 = {}
 
 for i in range(1, 16):
     knnSolver06.knn(i)
     acc = knnSolver06.accuracy()
-    globalAccuracy06.append(acc)
-    if acc == 100.0:
-        print(f"k = {i}, osiągnęło 100%")
+    globalAccuracy06[i] = acc
+
+for key, value in globalAccuracy06.items():
+    if value == max(globalAccuracy06.values()):
+        print(f"\nk = {key}, osiągnęło: {value}%")
+        knnSolver06.knn(key)
+        knnSolver06.accuracy()
         knnSolver06.missesMatrix()
 
 plt.figure(figsize=(10, 6))  # Ustawienie rozmiaru wykresu
-plt.plot(k_values, globalAccuracy06, marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
+plt.plot(k_values, globalAccuracy06.values(), marker='o', linestyle='-', color='blue', label='Dokładność (%)')  # Linia z punktami
 
 # 3. Dodanie tytułu i opisów osi
 plt.title('Dokładność klasyfikacji dla petal length i petal width w zależności od k (k-NN)', fontsize=14)  # Tytuł wykresu
